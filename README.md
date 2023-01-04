@@ -18,3 +18,13 @@ This repository implements the drift detection algorithm proposed in the paper *
 pip install -r requrisment.txt
 ```
 
+### Experimental results
+
+The performance of the drift detection algorithm on the artificial dataset is tested in the [main.py ](https://github.com/hope-coder/SDDM/blob/master/main.py) with metrics such as accuracy, recall, etc. The results of repeating the test 30 times are:
+
+
+
+在不同指标结果上使用Nemenyi test对算法进行了排名，结果为：
+
+
+
