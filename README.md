@@ -22,9 +22,19 @@ pip install -r requrisment.txt
 
 The performance of the drift detection algorithm on the artificial dataset is tested in the [main.py ](https://github.com/hope-coder/SDDM/blob/master/main.py) with metrics such as accuracy, recall, etc. The results of repeating the test 30 times are:
 
+![](https://github.com/hope-coder/SDDM/raw/master/result/result_1671607203.0845156.png)
 
+The algorithms were ranked using the Nemenyi test on the different metric results.
 
-在不同指标结果上使用Nemenyi test对算法进行了排名，结果为：
+The precision rate ranking is:
 
+![](https://github.com/hope-coder/SDDM/raw/master/result/nemenyi/1671607208.6429975precision.png)
 
+The recall rate ranking is:
+
+![](https://github.com/hope-coder/SDDM/raw/master/result/nemenyi/1671607208.781749recall.png)
+
+The ranking of the number of false detections is:
+
+![](https://github.com/hope-coder/SDDM/raw/master/result/nemenyi/1671607209.1928563false_alarms.png)
 
