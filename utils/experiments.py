@@ -78,7 +78,7 @@ def evaluate_rw(data_desc, method, D, pred_concept_drifts, time_elapsed, batch_s
 
     collect_samples = False
     rw_scores = []
-    data_indexs = []
+    data_indexes = []
     n_x_samples = len(X)
     X_training_buffer = []
     Y_training_buffer = []
@@ -94,7 +94,7 @@ def evaluate_rw(data_desc, method, D, pred_concept_drifts, time_elapsed, batch_s
 
             y_pred = model.predict(x_batch)
             rw_scores.append(precision_score(y_batch, y_pred, average='weighted'))
-            data_indexs.append(t)
+            data_indexes.append(t)
             for pred_concept_drift in pred_concept_drifts:
                 if t <= pred_concept_drift < end_idx:
                     collect_samples = True
@@ -103,7 +103,7 @@ def evaluate_rw(data_desc, method, D, pred_concept_drifts, time_elapsed, batch_s
         else:
             y_pred = model.predict(x_batch)
             rw_scores.append(precision_score(y_batch, y_pred, average='weighted'))
-            data_indexs.append(t)
+            data_indexes.append(t)
             X_training_buffer.append(x_batch)
             Y_training_buffer.append(y_batch)
             if len(X_training_buffer) * len(x_batch) > train_buffer_size:
@@ -119,14 +119,14 @@ def evaluate_rw(data_desc, method, D, pred_concept_drifts, time_elapsed, batch_s
     plt.title(data_desc + "___" + method)
     plt.vlines(x=pred_concept_drifts, ymin=0.0, ymax=1, colors='r', linestyles='-',
                label='drift')
-    plt.plot(data_indexs, rw_scores, lw=2, label='accuracy')
+    plt.plot(data_indexes, rw_scores, lw=2, label='accuracy')
     plt.title(data_desc + "___" + method + "__" + str(np.average(rw_scores)))
     plt.show()
     print(method)
     print(pred_concept_drifts)
-    print(data_indexs)
+    print(data_indexes)
     print(rw_scores)
-    return {"data_indexs": data_indexs, "scores": rw_scores}
+    return {"data_indexes": data_indexes, "scores": rw_scores}
 
 
 def nemenyi_test(indicators, results, reverses, n_itr=1):

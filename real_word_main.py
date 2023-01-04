@@ -5,11 +5,13 @@
 # @Desc    : 
 # @File    : real_word_main.py
 
-from skmultiflow.drift_detection import ADWIN, PageHinkley
-
 from detector.DAWIDD import DAWIDD as SWIDD
 from detector.HDDDM import HDDDM
+from detector.PCACD import *
+from detector.SDDM import *
+from utils.datasets import *
 from utils.drift_detector import *
+from utils.experiments import evaluate
 
 
 def test_rw_dataset(all_dataset, methods):
@@ -62,109 +64,37 @@ def test_on_rw_data_set(data_desc, D, methods):
     data_next = data_stream[n_train:, :]
     # Run unsupervised drift detector
 
-    if "L-CODE-PRE-KS" in r[data_desc].keys():
-        dd = DriftDetectorUnsupervised(L_CODE_predict_ks(X0, Y0, 200, 0, alpha_ks), batch_size=batch_size)
-        changes_detected, time_elapsed = dd.apply_to_stream(X)
-
-        # Evaluation
-        scores = evaluate_rw(data_desc, "L-CODE-PRE-KS", D, changes_detected, time_elapsed, batch_size=batch_size)
-        r[data_desc]["L-CODE-PRE-KS"].append(scores)
-
-    if "L-CODE-PRE-KS-HOT" in r[data_desc].keys():
-        dd = DriftDetectorUnsupervised(L_CODE_predict_ks_hot(X0, Y0, 200, 0, alpha_ks), batch_size=batch_size)
-        changes_detected, time_elapsed = dd.apply_to_stream(X)
-
-        # Evaluation
-        scores = evaluate_rw(data_desc, "L-CODE-PRE-KS-HOT", D, changes_detected, time_elapsed, batch_size=batch_size)
-        r[data_desc]["L-CODE-PRE-KS-HOT"].append(scores)
-
-    if "L-CODE-TRAN-PRE-KS" in r[data_desc].keys():
-        dd = DriftDetectorUnsupervised(L_CODE_tran_pre_ks(X0, Y0, 200, 0, alpha_tran), batch_size=batch_size)
-        changes_detected, time_elapsed = dd.apply_to_stream(X)
-
-        # Evaluation
-        scores = evaluate_rw(data_desc, "L-CODE-TRAN-PRE-KS", D, changes_detected, time_elapsed, batch_size=batch_size)
-        r[data_desc]["L-CODE-TRAN-PRE-KS"].append(scores)
-
-    if "L-CODE-PRE-LOSS" in r[data_desc].keys():
-        dd = DriftDetectorUnsupervised(L_CODE_predict_loss(X0, Y0, 20, 0, 0.01), batch_size=batch_size)
+    if "SDDM" in r[data_desc].keys():
+        dd = DriftDetectorUnsupervised(SDDM(X0, Y0, 50, 0, alpha_ks), batch_size=batch_size)
         changes_detected, time_elapsed = dd.apply_to_stream(X)
 
         # Evaluation
         scores = evaluate(concept_drifts, changes_detected, time_elapsed, tol)
-        r[data_desc]["L-CODE-PRE-LOSS"].append(scores)
+        r[data_desc]["L-CODE-PRE-KS"].append(scores)
 
     if "HDDDM" in r[data_desc].keys():
         dd = DriftDetectorUnsupervised(HDDDM(data0, gamma=None, alpha=0.005), batch_size=batch_size)
         changes_detected, time_elapsed = dd.apply_to_stream(data_stream)
 
         # Evaluation
-        scores = evaluate_rw(data_desc, "HDDDM", D, changes_detected, time_elapsed, batch_size=batch_size)
+        scores = evaluate(concept_drifts, changes_detected, time_elapsed, tol)
+        r[data_desc]["HDDDM"].append(scores)
     if "SWIDD" in r[data_desc].keys():
         dd = DriftDetectorUnsupervised(SWIDD(max_window_size=300, min_window_size=100), batch_size=1)
         changes_detected, time_elapsed = dd.apply_to_stream(data_stream)
 
         # Evaluation
-        scores = evaluate_rw(data_desc, "SWIDD", D, changes_detected, time_elapsed, batch_size=batch_size)
+        scores = evaluate(concept_drifts, changes_detected, time_elapsed, tol)
         r[data_desc]["SWIDD"].append(scores)
 
-    # Run supervised drift detector
-    model = GaussianNB()
-
-    # EDDM
-    drift_detector = EDDM()
-
-    clf = Classifier(model)
-    clf.flip_score = True
-    clf.fit(X0, Y0.ravel())
-    if "EDDM" in r[data_desc].keys():
-        dd = DriftDetectorSupervised(clf=clf, drift_detector=drift_detector, training_buffer_size=training_buffer_size)
-        changes_detected, time_elapsed = dd.apply_to_stream(X_next, Y_next)
+    if "PCACD" in r[data_desc].keys():
+        detector = PcaCD(window_size=50, divergence_metric="intersection")
+        dd = DriftDetectorUnsupervised(drift_detector=detector, batch_size=1)
+        changes_detected, time_elapsed = dd.apply_to_stream(data_stream)
 
         # Evaluation
-        scores = evaluate_rw(data_desc, "EDDM", D, changes_detected, time_elapsed, batch_size=batch_size)
-        r[data_desc]["EDDM"].append(scores)
-
-    if "DDM" in r[data_desc].keys():
-        drift_detector = DDM(min_num_instances=30, warning_level=2.0, out_control_level=3.0)
-
-        clf = Classifier(model)
-        clf.flip_score = True
-        clf.fit(X0, Y0.ravel())
-
-        dd = DriftDetectorSupervised(clf=clf, drift_detector=drift_detector, training_buffer_size=training_buffer_size)
-        changes_detected, time_elapsed = dd.apply_to_stream(X_next, Y_next)
-
-        # Evaluation
-        scores = evaluate_rw(data_desc, "DDM", D, changes_detected, time_elapsed, batch_size=batch_size)
-        r[data_desc]["DDM"].append(scores)
-
-    if "ADWIN" in r[data_desc].keys():
-        drift_detector = ADWIN(delta=2.)
-
-        clf = Classifier(model)
-        clf.fit(X0, Y0.ravel())
-
-        dd = DriftDetectorSupervised(clf=clf, drift_detector=drift_detector, training_buffer_size=training_buffer_size)
-        changes_detected, time_elapsed = dd.apply_to_stream(X_next, Y_next)
-
-        # Evaluation
-        scores = evaluate_rw(data_desc, "ADWIN", D, changes_detected, time_elapsed, batch_size=batch_size)
-        r[data_desc]["ADWIN"].append(scores)
-    #
-    if "PageHinkley" in r[data_desc].keys():
-        drift_detector = PageHinkley()
-
-        clf = Classifier(model)
-        clf.flip_score = True
-        clf.fit(X0, Y0.ravel())
-
-        dd = DriftDetectorSupervised(clf=clf, drift_detector=drift_detector, training_buffer_size=training_buffer_size)
-        changes_detected, time_elapsed = dd.apply_to_stream(X_next, Y_next)
-
-        # Evaluation
-        scores = evaluate_rw(concept_drifts, changes_detected, time_elapsed, tol)
-        r[data_desc]["PageHinkley"].append(scores)
+        scores = evaluate(concept_drifts, changes_detected, time_elapsed, tol)
+        r[data_desc]["PCACD"].append(scores)
 
     return r
 
@@ -178,39 +108,16 @@ if __name__ == '__main__':
     batch_size = 50
     run_record = 0
     all_datasets = [
-        # "RotatingHyperplane",
-        # "SEA",
-        # "RandomRBF",
-        # "STAGGER",
-        # "1CDT",
-        # "2CDT",
-        # "2CHT",
-        # "1CHT",
-        # "UG_2C_2D",
-        # "4CRE-V1",
-        # "meanChange",
-        # "stdChange",
-        # "rouChange",
-        # "MixingGaussians",
-        # "TwoMixingGaussians",
         # "Weather",
         # "ForestCover",
-        "ElectricityMarket",
+        # "ElectricityMarket",
         # "Phishing"
     ]
     methods = [
-        # "L-CODE-PLUS",
-        # "L-CODE-KS",
-        # "L-CODE-PRE",
-        # "L-CODE-PRE-KS",
-        "L-CODE-PRE-KS-HOT",
-        # "L-CODE-TRAN-PRE-KS",
-        # "L-CODE-PRE-LOSS",
-        # "HDDDM",
-        # "SWIDD",
-        # "EDDM",
-        # "DDM",
-        # "ADWIN",
+        "SDDM",
+        "HDDDM",
+        "PCACD",
+        "SWIDD",
     ]
     indicators = [
         'precision',

@@ -77,7 +77,7 @@ def test_on_data_set(data_desc, D, methods):
 
         # Evaluation
         scores = evaluate(concept_drifts, changes_detected, time_elapsed, tol)
-        r[data_desc]["L-CODE-PRE-KS"].append(scores)
+        r[data_desc]["SDDM"].append(scores)
 
     if "HDDDM" in r[data_desc].keys():
         dd = DriftDetectorUnsupervised(HDDDM(data0, gamma=None, alpha=0.005), batch_size=batch_size)
@@ -93,6 +93,15 @@ def test_on_data_set(data_desc, D, methods):
         # Evaluation
         scores = evaluate(concept_drifts, changes_detected, time_elapsed, tol)
         r[data_desc]["SWIDD"].append(scores)
+
+    if "PCACD" in r[data_desc].keys():
+        detector = PcaCD(window_size=50, divergence_metric="intersection")
+        dd = DriftDetectorUnsupervised(drift_detector=detector, batch_size=1)
+        changes_detected, time_elapsed = dd.apply_to_stream(data_stream)
+
+        # Evaluation
+        scores = evaluate(concept_drifts, changes_detected, time_elapsed, tol)
+        r[data_desc]["PCACD"].append(scores)
 
     # Run supervised drift detector
     model = GaussianNB()
@@ -124,15 +133,6 @@ def test_on_data_set(data_desc, D, methods):
         # Evaluation
         scores = evaluate(concept_drifts, changes_detected, time_elapsed, tol)
         r[data_desc]["DDM"].append(scores)
-
-    if "PCACD" in r[data_desc].keys():
-        detector = PcaCD(window_size=50, divergence_metric="intersection")
-        dd = DriftDetectorUnsupervised(drift_detector=detector, batch_size=1)
-        changes_detected, time_elapsed = dd.apply_to_stream(data_stream)
-
-        # Evaluation
-        scores = evaluate(concept_drifts, changes_detected, time_elapsed, tol)
-        r[data_desc]["PCACD"].append(scores)
 
     if "ADWIN" in r[data_desc].keys():
         drift_detector = ADWIN(delta=2.)
