@@ -2,6 +2,7 @@
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 
+
 def read_data_bike_share(foldername="data/bike_share/"):
     df_train = pd.read_csv(foldername + "train.csv", parse_dates=['datetime'])
     df_test = pd.read_csv(foldername + "test.csv", parse_dates=['datetime'])
@@ -19,7 +20,7 @@ def read_data_bike_share(foldername="data/bike_share/"):
     full['hour'] = full['hour'].apply(lambda x: 3 if x in peak else (1 if x in low else 2))
     full = full.drop(columns=['holiday', 'atemp', 'datetime'])
     full = full.reset_index(drop=True)
-    #y = full['count'].valuse()
+    # y = full['count'].valuse()
     # X = full.values
     return full
 
@@ -37,6 +38,7 @@ def read_data_electricity_market(foldername="data/"):
     y = le.transform(y)
 
     return X, y
+
 
 def read_data_weather(foldername="data/weather/"):
     df_labels = pd.read_csv(foldername + "NEweather_class.csv")
