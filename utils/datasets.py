@@ -1,3 +1,4 @@
+import math
 import random
 
 import numpy as np
@@ -237,6 +238,79 @@ def create_bike_share_drift_dataset(n_concept_drifts=5):
     Y_stream = X['count'].values
     X_stream = X.drop(columns=['count']).values
 
+    return {"data": (X_stream, Y_stream.reshape(-1, 1)), "drifts": []}
+
+
+def ideal_func(humidity, temp, windspeed):
+    ideal_humidity = 45
+    ideal_temp = 24
+    ideal_windspeed = 10
+    ideal = math.sqrt((humidity - ideal_humidity) ** 2 + (temp - ideal_temp) ** 2 + (windspeed - ideal_windspeed) ** 2)
+    ideal_min = 0
+    ideal_max = 78
+    if ideal > (ideal_max - ideal_min) / 4:
+        level = 1
+    else:
+        level = 0
+    return level
+
+
+def data_gen(data_dict, group):
+    df_dict = {}
+    for col in data_dict.keys():
+        data = data_dict[col]
+        data_list = []
+        for month in data.keys():
+            size = 0
+            if month in [1, 3, 5, 7, 8, 10, 12]:
+                size = 31
+            elif month == 2:
+                size = 29
+            else:
+                size = 30
+            month_data = np.random.normal(data[month][0], data[month][1], size)
+            data_list += list(month_data)
+        df_dict[col] = data_list
+    data_df = pd.DataFrame(df_dict)
+    data_df[['month', 'dayname', 'season']] = group[['month', 'dayname', 'season']]
+    for i in range(data_df.shape[0]):
+        data_df.loc[i:i + 1, 'ideal'] = ideal_func(data_df.humidity.loc[i], data_df.temp.loc[i],
+                                                   data_df.windspeed.loc[i])
+    return data_df
+
+
+def create_comfort_level_fake_drift_dataset():
+    full = load_rw_data.read_data_bike_share()
+    to_drop_features = ['weather', 'workingday', 'count']
+    full.drop(to_drop_features, axis=1, inplace=True)
+    data_2012 = full[full.year == 2012]
+    group = data_2012.groupby('date').mean()
+    group = group.reset_index(drop=True)
+    for i in range(group.shape[0]):
+        group.loc[i, 'ideal'] = ideal_func(group.humidity.loc[i], group.temp.loc[i], group.windspeed.loc[i])
+    data_dict = {'temp': {}, 'humidity': {}, 'windspeed': {}}
+    for month in range(1, 13):
+
+        for col in ['temp', 'humidity', 'windspeed']:
+            mean = group.loc[group.month == month, col].mean()
+            std = group.loc[group.month == month, col].std()
+            data_dict[col][month] = (mean, std)
+    group = group.drop(['hour', 'year'], axis=1)
+    group[['month', 'dayname']] = group[
+        ['month', 'dayname']].astype(
+        'object')
+    group = group.reset_index(drop=True)
+
+    group1 = data_gen(data_dict, group)
+    # group3 = data_gen(data_dict, group)
+    test_data = data_gen(data_dict, group)
+    # test_data2 = data_gen(data_dict, group3)
+    group = pd.concat((group, group1, test_data), axis=0)
+    group = group.drop(columns=['month', 'dayname', 'season'], axis=1)
+    group_X = group.drop(['ideal'], axis=1)
+    group_y = group.loc[:, ['ideal']].astype('int8')
+    X_stream = group_X.values
+    Y_stream = group_y.values
     return {"data": (X_stream, Y_stream.reshape(-1, 1)), "drifts": []}
 
 

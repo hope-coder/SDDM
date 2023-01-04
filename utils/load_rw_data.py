@@ -8,7 +8,7 @@ def read_data_bike_share(foldername="data/bike_share/"):
     df_train = df_train.drop(columns=['casual', 'registered'])
     full = pd.concat([df_train, df_test])
     full.sort_values(by='datetime', inplace=True)
-    # full['date'] = full['datetime'].dt.date
+    full['date'] = full['datetime'].dt.date
     full['month'] = full['datetime'].dt.month
     full['hour'] = full['datetime'].dt.hour
     full['dayname'] = full['datetime'].dt.weekday
@@ -45,7 +45,7 @@ def read_data_weather(foldername="data/weather/"):
     df_data = pd.read_csv(foldername + "NEweather_data.csv")
     X = df_data.values
 
-    return X, y 
+    return X, y
 
 
 def read_data_forest_cover_type(foldername="data/"):
