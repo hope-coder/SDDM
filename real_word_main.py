@@ -11,7 +11,7 @@ from detector.PCACD import *
 from detector.SDDM import *
 from utils.datasets import *
 from utils.drift_detector import *
-from utils.experiments import evaluate
+from utils.experiments import evaluate, evaluate_rw
 
 
 def test_rw_dataset(all_dataset, methods):
@@ -60,40 +60,45 @@ def test_on_rw_data_set(data_desc, D, methods):
     X0, Y0 = X[0:n_train, :], Y[0:n_train, :]  # Training dataset
     data0 = data_stream[0:n_train, :]
 
+    # 为什么漂移数据点没有减去训练数据？？？？
+    # 太傻逼了，设计漂移点位置时候有训练数据，检测点计数的时候他妈的没了，真绝了
     X_next, Y_next = X[n_train:, :], Y[n_train:, :]  # Test set
     data_next = data_stream[n_train:, :]
     # Run unsupervised drift detector
 
     if "SDDM" in r[data_desc].keys():
-        dd = DriftDetectorUnsupervised(SDDM(X0, Y0, 50, 0, alpha_ks), batch_size=batch_size)
+        dd = DriftDetectorUnsupervised(SDDM(X0, Y0, 200, 0, alpha_ks), batch_size=batch_size)
         changes_detected, time_elapsed = dd.apply_to_stream(X)
 
         # Evaluation
-        scores = evaluate(concept_drifts, changes_detected, time_elapsed, tol)
-        r[data_desc]["L-CODE-PRE-KS"].append(scores)
+        scores = evaluate_rw(data_desc, "SDDM", D, changes_detected, time_elapsed, batch_size=batch_size)
+        r[data_desc]["SDDM"].append(scores)
 
     if "HDDDM" in r[data_desc].keys():
         dd = DriftDetectorUnsupervised(HDDDM(data0, gamma=None, alpha=0.005), batch_size=batch_size)
         changes_detected, time_elapsed = dd.apply_to_stream(data_stream)
 
         # Evaluation
-        scores = evaluate(concept_drifts, changes_detected, time_elapsed, tol)
+        scores = evaluate_rw(data_desc, "HDDDM", D, changes_detected, time_elapsed, batch_size=batch_size)
         r[data_desc]["HDDDM"].append(scores)
     if "SWIDD" in r[data_desc].keys():
         dd = DriftDetectorUnsupervised(SWIDD(max_window_size=300, min_window_size=100), batch_size=1)
         changes_detected, time_elapsed = dd.apply_to_stream(data_stream)
 
         # Evaluation
-        scores = evaluate(concept_drifts, changes_detected, time_elapsed, tol)
+        scores = evaluate_rw(data_desc, "SWIDD", D, changes_detected, time_elapsed, batch_size=batch_size)
         r[data_desc]["SWIDD"].append(scores)
 
     if "PCACD" in r[data_desc].keys():
         detector = PcaCD(window_size=50, divergence_metric="intersection")
         dd = DriftDetectorUnsupervised(drift_detector=detector, batch_size=1)
-        changes_detected, time_elapsed = dd.apply_to_stream(data_stream)
+        # changes_detected, time_elapsed = dd.apply_to_stream(X)
+        # fake drift test
+        changes_detected, time_elapsed = dd.apply_to_stream(X_next)
 
         # Evaluation
-        scores = evaluate(concept_drifts, changes_detected, time_elapsed, tol)
+
+        scores = evaluate_rw(data_desc, "PCACD", D, changes_detected, time_elapsed, batch_size=batch_size)
         r[data_desc]["PCACD"].append(scores)
 
     return r
@@ -116,14 +121,15 @@ if __name__ == '__main__':
     methods = [
         "SDDM",
         "HDDDM",
-        "PCACD",
         "SWIDD",
+        "PCACD"
     ]
     indicators = [
-        'precision',
-        'recall',
-        'drift_detected',
+        # 'precision',
+        # 'recall',
+        # 'drift_detected',
         'false_positives',
         'drift_not_detected'
     ]
     all_results = [test_rw_dataset(all_datasets, methods) for _ in range(n_itr)]
+    print(all_results)

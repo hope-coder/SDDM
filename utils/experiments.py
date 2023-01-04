@@ -60,7 +60,8 @@ def evaluate(true_concept_drifts, pred_concept_drifts, time_elapsed, tol=200):
         if b is False:
             drift_not_detected += 1
 
-    return {"false_positives": false_positives, "drift_detected": drift_detected, "drift_not_detected": drift_not_detected,
+    return {"false_positives": false_positives, "drift_detected": drift_detected,
+            "drift_not_detected": drift_not_detected,
             "delays": delays, "time_elapsed": time_elapsed}
 
 
@@ -121,6 +122,7 @@ def evaluate_rw(data_desc, method, D, pred_concept_drifts, time_elapsed, batch_s
                label='drift')
     plt.plot(data_indexes, rw_scores, lw=2, label='accuracy')
     plt.title(data_desc + "___" + method + "__" + str(np.average(rw_scores)))
+    plt.savefig('./result/real_word/' + data_desc + "___" + method + "__" + str(np.average(rw_scores)) + '.png')
     plt.show()
     print(method)
     print(pred_concept_drifts)
