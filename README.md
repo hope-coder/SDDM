@@ -2,7 +2,7 @@
 
 This repository implements the drift detection algorithm proposed in the paper **A SHAP Value-Based Unsupervised Drift Detection Method**
 
-- The *SHAP Value-Based Unsupervised Drift Detection Method* is implemented in the SDDM.py file in the detector folder
+- The *SHAP Value-Based Unsupervised Drift Detection Method* is implemented in the [SDDM.py](https://github.com/hope-coder/SDDM/blob/master/detector/SDDM.py) in the detector folder
 - Experiments to compare the performance of each drift detection algorithm on artificial datasets are implemented in [main.py ](https://github.com/hope-coder/SDDM/blob/master/main.py)
 - Experiments to compare the performance of each drift detection algorithm on real-world datasets are implemented in [real_word_main.py](https://github.com/hope-coder/SDDM/blob/master/real_word_main.py)
 - Experiments to test the performance of each drift detection algorithm under a pseudo-drift dataset are implemented in [pseudo_drift_main.py](https://github.com/hope-coder/SDDM/blob/master/pseudo_drift_main.py)

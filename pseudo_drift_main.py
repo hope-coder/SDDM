@@ -110,7 +110,7 @@ def test_on_data_set(data_desc, D, methods):
     return r
 
 
-def evaluate_all_methods(all_results, indicators):
+def evaluate_all_methods(all_results, indicators, n_itr):
     results = all_results[0]
     # 将所有的结果加到一起,暂时保留原结构，其中有一个数组没有用但是不改了
 
@@ -121,14 +121,13 @@ def evaluate_all_methods(all_results, indicators):
                 results[dataset][method][0]['false_positives'] += all_results[result_number][dataset][method][0][
                     'false_positives']
 
-
     # 统计出召回率等信息，并将无用的数组删除
     results_stat = dict()
     for dataset_name, dataset in results.items():
         results_stat[dataset_name] = dict()
         for method_name, result in dataset.items():
             results_stat[dataset_name][method_name] = dict()
-            results_stat[dataset_name][method_name]['false_positives'] = result[0]['false_positives']/n_itr
+            results_stat[dataset_name][method_name]['false_positives'] = result[0]['false_positives'] / n_itr
     # 方法的个数方便画图
     dataset_num = len(results.keys())
 
@@ -158,12 +157,12 @@ def evaluate_all_methods(all_results, indicators):
             subPlot.set_xlabel("methods")
             subPlot.set_ylabel(indicator)
 
-    plt.suptitle("tol:" + str(tol)
-                 + " patience:" + str(patience)
-                 + " n_itr:" + str(n_itr)
-                 + " batch_size:" + str(batch_size)
-                 + " alpha_ks:" + str(alpha_ks)
-                 + " alpha_tran:" + str(alpha_tran), fontsize=30)
+    # plt.suptitle("tol:" + str(tol)
+    #              + " patience:" + str(patience)
+    #              + " n_itr:" + str(n_itr)
+    #              + " batch_size:" + str(batch_size)
+    #              + " alpha_ks:" + str(alpha_ks)
+    #              + " alpha_tran:" + str(alpha_tran), fontsize=30)
     plt.savefig("result/result_" + str(time.time()) + ".png")
     plt.show()
     print(results_stat)
@@ -197,4 +196,4 @@ if __name__ == '__main__':
     ]
 
     all_results = [test_dataset(all_datasets, methods) for _ in range(n_itr)]
-    evaluate_all_methods(all_results, indicators)
+    evaluate_all_methods(all_results, indicators, n_itr)

@@ -149,7 +149,7 @@ def test_on_data_set(data_desc, D, methods):
     return r
 
 
-def evaluate_all_methods(all_results, indicators):
+def evaluate_all_methods(all_results, indicators, n_itr):
     results = all_results[0]
     # 将所有的结果加到一起,暂时保留原结构，其中有一个数组没有用但是不改了
 
@@ -157,15 +157,15 @@ def evaluate_all_methods(all_results, indicators):
     for result_number in range(1, len(all_results)):
         for dataset in results.keys():
             for method in results[dataset].keys():
-                results[dataset][method][0]['false_positives'] += all_results[result_number][dataset][method][0][
-                    'false_positives']
+                results[dataset][method][0]['false_alarms'] += all_results[result_number][dataset][method][0][
+                    'false_alarms']
                 results[dataset][method][0]['drift_detected'] += all_results[result_number][dataset][method][0][
                     'drift_detected']
                 results[dataset][method][0]['drift_not_detected'] += all_results[result_number][dataset][method][0][
                     'drift_not_detected']
                 results[dataset][method][0]['time_elapsed'] += all_results[result_number][dataset][method][0][
                     'time_elapsed']
-                results[dataset][method][0]['delays'] += all_results[result_number][dataset][method][0]['delays']
+                # results[dataset][method][0]['delays'] += all_results[result_number][dataset][method][0]['delays']
 
     # 统计出召回率等信息，并将无用的数组删除
     results_stat = dict()
@@ -173,10 +173,10 @@ def evaluate_all_methods(all_results, indicators):
         results_stat[dataset_name] = dict()
         for method_name, result in dataset.items():
             results_stat[dataset_name][method_name] = dict()
-            results_stat[dataset_name][method_name]['false_positives'] = result[0]['false_positives']
-            results_stat[dataset_name][method_name]['drift_detected'] = result[0]['drift_detected']
-            results_stat[dataset_name][method_name]['drift_not_detected'] = result[0]['drift_not_detected']
-            results_stat[dataset_name][method_name]['delays'] = result[0]['delays']
+            results_stat[dataset_name][method_name]['false_alarms'] = result[0]['false_alarms'] / n_itr
+            results_stat[dataset_name][method_name]['drift_detected'] = result[0]['drift_detected'] / n_itr
+            results_stat[dataset_name][method_name]['drift_not_detected'] = result[0]['drift_not_detected'] / n_itr
+            # results_stat[dataset_name][method_name]['delays'] = result[0]['delays']
             results_stat[dataset_name][method_name]['avg_time_elapsed'] = result[0]['time_elapsed'] / len(all_results)
             if result[0]['drift_detected'] + result[0]['drift_not_detected'] == 0:
                 results_stat[dataset_name][method_name]['recall'] = 0
@@ -184,15 +184,15 @@ def evaluate_all_methods(all_results, indicators):
                 results_stat[dataset_name][method_name]['recall'] = result[0]['drift_detected'] / (
                         result[0]['drift_detected'] + result[0]['drift_not_detected'])
 
-            if result[0]['drift_detected'] + result[0]['false_positives'] == 0:
+            if result[0]['drift_detected'] + result[0]['false_alarms'] == 0:
                 results_stat[dataset_name][method_name]['precision'] = 0
             else:
                 results_stat[dataset_name][method_name]['precision'] = result[0]['drift_detected'] / (
-                        result[0]['drift_detected'] + result[0]['false_positives'])
+                        result[0]['drift_detected'] + result[0]['false_alarms'])
     # 方法的个数方便画图
     dataset_num = len(results.keys())
     fig, ax = plt.subplots(dataset_num, len(indicators),
-                           figsize=(5 * len(indicators), 5 * dataset_num)
+                           figsize=(6 * len(indicators), 5 * dataset_num)
                            )
     # 对每个数据集做循环每个数据集的图占据一行
     for dataset_index, (dataset_name, dataset) in enumerate(results_stat.items()):
@@ -215,16 +215,16 @@ def evaluate_all_methods(all_results, indicators):
             subPlot.set_xlabel("methods")
             subPlot.set_ylabel(indicator)
 
-    plt.suptitle("tol:" + str(tol)
-                 + " patience:" + str(patience)
-                 + " n_itr:" + str(n_itr)
-                 + " batch_size:" + str(batch_size)
-                 + " alpha_ks:" + str(alpha_ks)
-                 + " alpha_tran:" + str(alpha_tran), fontsize=30)
+    # plt.suptitle("tol:" + str(tol)
+    #              + " patience:" + str(patience)
+    #              + " n_itr:" + str(n_itr)
+    #              + " batch_size:" + str(batch_size)
+    #              + " alpha_ks:" + str(alpha_ks)
+    #              + " alpha_tran:" + str(alpha_tran), fontsize=30)
     plt.savefig("result/result_" + str(time.time()) + ".png")
     plt.show()
     print(results_stat)
-    nemenyi_test(indicators, results_stat, reverses=[False, False, True, True],
+    nemenyi_test(indicators, results_stat, reverses=[False, False, True, False, True, True],
                  n_itr=n_itr)
     return results
 
@@ -269,4 +269,4 @@ if __name__ == '__main__':
 
     # all_results = Parallel(n_jobs=-1)(delayed(test_dataset)(all_datasets, methods) for _ in range(n_itr))
     all_results = [test_dataset(all_datasets, methods) for _ in range(n_itr)]
-    evaluate_all_methods(all_results, indicators)
+    evaluate_all_methods(all_results, indicators, n_itr)
