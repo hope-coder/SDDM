@@ -44,4 +44,10 @@ The ranking of the number of false detections is:
 
 Each drift detection algorithm was tested on four real-world datasets
 
-we introduce a classifier to process the real data and update the classifier when the algorithm detects a drift.The performance of the SDDM algorithm in the power plant data set is as follows, where the red line represents that the algorithm detects drift at this point and updates the classifier
+we introduce a classifier to process the real data and update the classifier when the algorithm detects a drift.As an example, the SDDM algorithm and the HDDDM algorithm perform in the weather dataset as follows, where the red line represents that the algorithm detects drift at this point and updates the classifier
+
+<center class="half">
+<img src="https://github.com/hope-coder/SDDM/raw/master/result/real_word/Weather___SDDM__0.759708402094201.png" width=330/>
+<img src="https://github.com/hope-coder/SDDM/raw/master/result/real_word/Weather___HDDDM__0.7316202463204476.png" width=330/>
+</center>
+
