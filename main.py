@@ -157,8 +157,8 @@ def evaluate_all_methods(all_results, indicators, n_itr):
     for result_number in range(1, len(all_results)):
         for dataset in results.keys():
             for method in results[dataset].keys():
-                results[dataset][method][0]['false_alarms'] += all_results[result_number][dataset][method][0][
-                    'false_alarms']
+                results[dataset][method][0]['false_positives'] += all_results[result_number][dataset][method][0][
+                    'false_positives']
                 results[dataset][method][0]['drift_detected'] += all_results[result_number][dataset][method][0][
                     'drift_detected']
                 results[dataset][method][0]['drift_not_detected'] += all_results[result_number][dataset][method][0][
@@ -173,7 +173,7 @@ def evaluate_all_methods(all_results, indicators, n_itr):
         results_stat[dataset_name] = dict()
         for method_name, result in dataset.items():
             results_stat[dataset_name][method_name] = dict()
-            results_stat[dataset_name][method_name]['false_alarms'] = result[0]['false_alarms'] / n_itr
+            results_stat[dataset_name][method_name]['false_positives'] = result[0]['false_positives'] / n_itr
             results_stat[dataset_name][method_name]['drift_detected'] = result[0]['drift_detected'] / n_itr
             results_stat[dataset_name][method_name]['drift_not_detected'] = result[0]['drift_not_detected'] / n_itr
             # results_stat[dataset_name][method_name]['delays'] = result[0]['delays']
@@ -184,11 +184,11 @@ def evaluate_all_methods(all_results, indicators, n_itr):
                 results_stat[dataset_name][method_name]['recall'] = result[0]['drift_detected'] / (
                         result[0]['drift_detected'] + result[0]['drift_not_detected'])
 
-            if result[0]['drift_detected'] + result[0]['false_alarms'] == 0:
+            if result[0]['drift_detected'] + result[0]['false_positives'] == 0:
                 results_stat[dataset_name][method_name]['precision'] = 0
             else:
                 results_stat[dataset_name][method_name]['precision'] = result[0]['drift_detected'] / (
-                        result[0]['drift_detected'] + result[0]['false_alarms'])
+                        result[0]['drift_detected'] + result[0]['false_positives'])
     # 方法的个数方便画图
     dataset_num = len(results.keys())
     fig, ax = plt.subplots(dataset_num, len(indicators),
