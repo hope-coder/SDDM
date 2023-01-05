@@ -65,9 +65,9 @@ class DriftDetectorUnsupervised():
 
             if self.drift_detector.detected_change():
                 self.changes_detected.append(t)
-                print(self.detector_name + "检测到漂移啦")
+                print(self.detector_name + " detects concept drift")
 
             t += self.batch_size
-        print(self.detector_name + "在" + str(self.changes_detected) + "处检测到漂移啦")
+        print(self.detector_name + " detects concept drift at " + str(self.changes_detected))
         time_elapsed = time.time() - since
         return self.changes_detected, time_elapsed

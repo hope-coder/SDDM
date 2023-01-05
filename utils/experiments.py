@@ -123,12 +123,9 @@ def evaluate_rw(data_desc, method, D, pred_concept_drifts, time_elapsed, batch_s
                label='drift')
     plt.plot(data_indexs, rw_scores, lw=2, label='accuracy')
     plt.title(data_desc + "___" + method + "__" + str(np.average(rw_scores)))
-    plt.savefig('./result/real_word/' + data_desc + "___" + method + "__" + str(np.average(rw_scores)) + '.png')
+    plt.savefig('./result/real_word/' + data_desc + "___" + method + "__" + str(update_num) + "__" + str(
+        np.average(rw_scores)) + '.png')
     plt.show()
-    print(method)
-    print(pred_concept_drifts)
-    print(data_indexs)
-    print(rw_scores)
     # return {"data_indexs": data_indexs, "scores": rw_scores, "update_num": update_num,"acc_avg":np.mean(rw_scores)}
     return {"update_num": update_num, "acc_avg": np.mean(rw_scores), "drift_detect": len(pred_concept_drifts)}
 

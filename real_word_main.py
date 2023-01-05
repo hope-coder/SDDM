@@ -114,9 +114,9 @@ if __name__ == '__main__':
     run_record = 0
     all_datasets = [
         # "Weather",
-        # "ForestCover",
-        # "ElectricityMarket",
-        # "Phishing"
+        "ForestCover",
+        "ElectricityMarket",
+        "Phishing"
     ]
     methods = [
         "SDDM",
