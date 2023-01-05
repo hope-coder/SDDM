@@ -20,6 +20,8 @@ pip install -r requrisment.txt
 
 ### Experimental results
 
+#### Experimental results of artificial data
+
 The performance of the drift detection algorithm on the artificial dataset is tested in the [main.py ](https://github.com/hope-coder/SDDM/blob/master/main.py) with metrics such as accuracy, recall, etc. The results of repeating the test 30 times are:
 
 ![](https://github.com/hope-coder/SDDM/raw/master/result/result_1671607203.0845156.png)
@@ -38,3 +40,8 @@ The ranking of the number of false detections is:
 
 ![](https://github.com/hope-coder/SDDM/raw/master/result/nemenyi/1671607209.1928563false_alarms.png)
 
+#### Experimental results of Real-world datasets
+
+Each drift detection algorithm was tested on four real-world datasets
+
+we introduce a classifier to process the real data and update the classifier when the algorithm detects a drift.The performance of the SDDM algorithm in the power plant data set is as follows, where the red line represents that the algorithm detects drift at this point and updates the classifier
