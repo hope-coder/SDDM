@@ -234,7 +234,6 @@ class SDDM():
         feature_important = np.array(feature_important) / sum(feature_important)
         feature_important_zip = list(zip(range(shap_values.shape[1]), feature_important))
         feature_sorted = sorted(feature_important_zip, key=lambda x: x[1], reverse=True)
-        print("特征重要性排序：", feature_sorted)
         important_sum = 0
         for shap_index, important in feature_sorted:
             important_sum += important
