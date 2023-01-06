@@ -113,7 +113,7 @@ if __name__ == '__main__':
     batch_size = 50
     run_record = 0
     all_datasets = [
-        # "Weather",
+        "Weather",
         "ForestCover",
         "ElectricityMarket",
         "Phishing"

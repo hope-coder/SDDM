@@ -250,13 +250,13 @@ if __name__ == '__main__':
     ]
     methods = [
         "SDDM",
-        "DWDDM",
+        # "DWDDM",
         "HDDDM",
-        "PCACD",
-        "SWIDD",
-        "EDDM",
-        "DDM",
-        "ADWIN",
+        # "PCACD",
+        # "SWIDD",
+        # "EDDM",
+        # "DDM",
+        # "ADWIN",
     ]
     indicators = [
         'precision',

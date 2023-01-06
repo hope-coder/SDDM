@@ -28,34 +28,18 @@ from sklearn.tree import DecisionTreeRegressor
 tf.compat.v1.disable_eager_execution()
 
 
-class shap_model:
-    def __init__(self, X_train, y_train):
+class explain_model:
+    def __init__(self, X_train, y_train, layer_name="drift"):
         self.X_train = X_train
         self.y_train = y_train
-        self.ex_detector = external_detector("drift")
-        self.ex_detector.build_detector(self.X_train, self.y_train)
-        self.X_middle_train = self.ex_detector.layer2df(self.X_train)
-
-    def get_shap(self, x):
-        return self.ex_detector.get_shap_values(x)
-
-    def get_middle_x(self, x):
-        return self.ex_detector.layer2df(x)
-
-    def re_train(self, X_train):
-        # 使用策略还不确定
-        self.ex_detector.re_train(X_train)
-
-
-class external_detector:
-    def __init__(self, layer_name):
         self.dtypes = None
         self.model = None
         self.X_middle_train = None
         self.layer_name = layer_name
 
-    def build_detector(self, X, y, model_type="normal"):
         # 进行数据集的归一化处理
+        X = X_train
+        y = y_train
         self.dtypes = list(zip(X.dtypes.index, map(str, X.dtypes)))
         for k, dtype in self.dtypes:
             if dtype == "float32":
@@ -82,7 +66,6 @@ class external_detector:
             data_type = "regression"
 
         X_train, X_valid, y_train, y_valid = train_test_split(X, y, test_size=0.2, random_state=7)
-        early_stop = EarlyStopping(monitor='val_accuracy', patience=60, verbose=1)
         input_els = []
         encoded_els = []
         for k, dtype in self.dtypes:
@@ -136,10 +119,16 @@ class external_detector:
 
         shap_values = self.explainer.shap_values(self.map2layer(X, self.layer_name))
         # shap.force_plot(shap_values, X.iloc[299, :])
+        self.X_middle_train = self.layer2df(self.X_train)
 
-        return shap_values
+    def preprocessing(self, x_copy):
+        # 同样归一化
+        for k, dtype in self.dtypes:
+            if dtype == "float32":
+                x_copy[k] -= x_copy[k].mean()
+                x_copy[k] /= x_copy[k].std()
+        return x_copy
 
-    # 将输入数据转为为中间层数据
     def map2layer(self, x, layer_name):
         x_copy = x.copy()
         self.preprocessing(x_copy)
@@ -152,28 +141,16 @@ class external_detector:
         layer = pd.DataFrame(layer)
         return layer
 
-    def get_shap_values(self, X):
+    def get_shap(self, X):
         return self.explainer.shap_values(self.map2layer(X, self.layer_name))
 
-    def get_score(self, X, y):
-        x = self.preprocessing(X)
-        return self.model.evaluate([x[k].values for k, t in self.dtypes], y)
-
-    def preprocessing(self, x_copy):
-        # 同样归一化
-        for k, dtype in self.dtypes:
-            if dtype == "float32":
-                x_copy[k] -= x_copy[k].mean()
-                x_copy[k] /= x_copy[k].std()
-        return x_copy
-
-    def re_train(self, X_train):
-        X_train = self.preprocessing(X_train)
+    def re_train(self, X_retrain):
+        X_retrain = self.preprocessing(X_retrain)
 
         # 尝试去更新检测器，实际上是去改变均值，去获取当前均值
         self.explainer = shap.GradientExplainer(
             (self.model.get_layer(self.layer_name).input, self.model.layers[-1].output),
-            self.map2layer(X_train.copy(), self.layer_name))
+            self.map2layer(X_retrain.copy(), self.layer_name))
 
 
 class SDDM():
@@ -187,7 +164,7 @@ class SDDM():
         self.windows_size = window_size
         self.current_window = []
         self.threshold = threshold
-        self.model = shap_model(X_train, y_train)
+        self.model = explain_model(X_train, y_train)
 
         # 获取训练数据的shap值，进行特征的过滤
         shap = self.model.get_shap(X_train)
